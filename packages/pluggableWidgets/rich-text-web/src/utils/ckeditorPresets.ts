@@ -77,7 +77,10 @@ const TOOLBAR_ITEMS: ToolbarItems[] = [
         ]
     },
     { name: "links", items: ["Link", "Unlink", "Anchor"] },
-    { name: "insert", items: ["Image", "Table", "HorizontalRule", "Smiley", "SpecialChar", "PageBreak", "Iframe"] },
+    {
+        name: "insert",
+        items: ["Image", "Table", "HorizontalRule", "Smiley", "SpecialChar", "PageBreak", "Iframe", "mxfiles"]
+    },
     { name: "styles", items: ["Styles", "Format", "Font", "FontSize"] },
     { name: "colors", items: ["TextColor", "BGColor"] },
     { name: "tools", items: ["Maximize", "ShowBlocks"] },
@@ -109,7 +112,7 @@ function createPreset(type: "basic" | "standard" | "full"): CKEditorConfig {
             config.removeButtons = "";
             /* TODO temporary removed exportpdf*/
             config.extraPlugins =
-                "save,templates,newpage,print,forms,find,selectall,div,divarea,justify,bidi,language,font,colorbutton,showblocks";
+                "save,templates,newpage,print,forms,find,selectall,div,divarea,justify,bidi,language,font,colorbutton,showblocks,mxfiles";
             break;
         default:
             config.toolbarGroups = [...TOOLBAR_GROUP];
@@ -129,7 +132,7 @@ function createCustomToolbar(groups: Array<string | ToolbarItems>, withGroupName
     } else {
         return {
             extraPlugins:
-                "save,templates,newpage,print,forms,find,selectall,div,divarea,justify,bidi,language,font,colorbutton,showblocks,smiley",
+                "save,templates,newpage,print,forms,find,selectall,div,divarea,justify,bidi,language,font,colorbutton,showblocks,smiley,mxfiles",
             toolbar: groups
         };
     }

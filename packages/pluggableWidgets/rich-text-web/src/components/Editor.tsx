@@ -5,6 +5,8 @@ import { RichTextContainerProps } from "../../typings/RichTextProps";
 import { getCKEditorConfig } from "../utils/ckeditorConfigs";
 import { MainEditor } from "./MainEditor";
 import DOMPurify from "dompurify";
+import { ActionValue, EditableValue } from "mendix";
+import { imageToBase64 } from "src/utils/imageTools";
 
 const FILE_SIZE_LIMIT = 1048576; // Binary bytes for 1MB
 
@@ -76,7 +78,7 @@ export class Editor extends Component<EditorProps> {
         return keys.some(key => {
             // We skip stringAttribute as it always changes. And we
             // handle updates in componentDidUpdate method.
-            if (key === "stringAttribute") {
+            if (key === "stringAttribute" || key === "uploadImageDataParameter") {
                 return false;
             }
 
@@ -146,6 +148,7 @@ export class Editor extends Component<EditorProps> {
             }
         }
     }
+
     onDropContent(event: CKEditorEvent): void {
         if (event.data.dataTransfer.isFileTransfer()) {
             for (let i = 0; i < event.data.dataTransfer.getFilesCount(); i++) {
@@ -176,12 +179,37 @@ export class Editor extends Component<EditorProps> {
         this.widgetProps.onChange?.execute();
     }
 
+    onUploadImage(imageData: File | Blob, uploadImageDataParameter: EditableValue, uploadImage: ActionValue): void {
+        if (!uploadImage.canExecute) {
+            return;
+        }
+        imageToBase64(imageData).then(imageString => {
+            const formatType = ";base64,";
+            const dataPart = imageString.substring(imageString.indexOf(formatType) + formatType.length);
+            uploadImageDataParameter.setValue(dataPart);
+            uploadImage.execute();
+        });
+    }
+
     addListeners(): void {
         if (this.editor && !this.editor.readOnly) {
             this.editor.on("change", this.onChange);
             this.editor.on("key", this.onKeyPress);
             this.editor.on("paste", this.onPasteContent);
             this.editor.on("drop", this.onDropContent);
+
+            const self = this;
+            this.editor.on("mx_upload_image", (event: any) => {
+                const { uploadImageDataParameter, uploadImage } = this.widgetProps;
+                if (!uploadImage || !uploadImageDataParameter) {
+                    return;
+                }
+                const editorData = this.editor.getData();
+                // TODO: sanitize
+                const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
+                this.widgetProps.stringAttribute.setValue(content);
+                self.onUploadImage(event.data, uploadImageDataParameter, uploadImage);
+            });
         }
     }
 
@@ -190,6 +218,7 @@ export class Editor extends Component<EditorProps> {
         this.editor?.removeListener("key", this.onKeyPress);
         this.editor?.removeListener("paste", this.onPasteContent);
         this.editor?.removeListener("drop", this.onDropContent);
+        this.editor?.removeListener("mx_upload_image", this.onUploadImage);
     }
 
     updateEditorState(
@@ -246,6 +275,29 @@ export class Editor extends Component<EditorProps> {
     }
 
     componentDidUpdate(): void {
+        const prevImageAttr = this.widgetProps.uploadImageDataParameter;
+        const nextImageAttr = this.props.widgetProps.uploadImageDataParameter;
+        if (prevImageAttr !== nextImageAttr || prevImageAttr?.value !== nextImageAttr?.value) {
+            const imageId = Number(nextImageAttr?.value);
+            if (imageId) {
+                const editorData = this.editor.getData() as string;
+                // TODO: sanitize
+                const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
+                const start = content.indexOf('<img src="blob:');
+                if (start > -1) {
+                    const end = content.indexOf('"', start + 14);
+                    // do not use imageId directly because it cannot handle big numbers
+                    const updatedData =
+                        content.substring(0, start) +
+                        `<img src="/file?guid=${nextImageAttr?.value}` +
+                        content.substring(end);
+                    console.log("debug componentDidUpdate", updatedData);
+                    this.widgetProps.stringAttribute.setValue(updatedData);
+                    this.widgetProps.uploadImageDataParameter?.setValue("");
+                }
+            }
+        }
+
         const prevAttr = this.widgetProps.stringAttribute;
         const nextAttr = this.props.widgetProps.stringAttribute;
 

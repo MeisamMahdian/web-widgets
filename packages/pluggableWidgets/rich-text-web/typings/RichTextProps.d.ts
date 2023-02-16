@@ -3,7 +3,7 @@
  * WARNING: All changes made to this file will be overwritten
  * @author Mendix Widgets Framework Team
  */
-import { ActionValue, EditableValue } from "mendix";
+import { ActionValue, EditableValue, ListValue } from "mendix";
 
 export type EditorTypeEnum = "classic" | "inline";
 
@@ -73,6 +73,10 @@ export interface RichTextContainerProps {
     advancedContentFilter: AdvancedContentFilterEnum;
     allowedContent: string;
     disallowedContent: string;
+    enableUploadImages: boolean;
+    imagesDataSource?: ListValue;
+    uploadImage?: ActionValue;
+    uploadImageDataParameter?: EditableValue<string>;
 }
 
 export interface RichTextPreviewProps {
@@ -111,4 +115,8 @@ export interface RichTextPreviewProps {
     advancedContentFilter: AdvancedContentFilterEnum;
     allowedContent: string;
     disallowedContent: string;
+    enableUploadImages: boolean;
+    imagesDataSource: {} | { type: string } | null;
+    uploadImage: {} | null;
+    uploadImageDataParameter: string;
 }
