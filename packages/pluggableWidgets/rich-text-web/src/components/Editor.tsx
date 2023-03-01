@@ -298,6 +298,14 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
             }
         }
 
+        const nextImages = this.props.widgetProps.imagesDataSource;
+        console.log("debug this.state.uploadedImages.length", this.state.uploadedImages.length);
+        console.log("debug nextImages?.items?.length", nextImages?.items?.length);
+        console.log("debug nextImages?.items?.length", nextImages?.items?.length);
+        if (this.state.uploadedImages.length === 0 && nextImages?.items?.length) {
+            this.setState({ uploadedImages: nextImages?.items?.map(item => item.id) || [] });
+        }
+
         const prevAttr = this.widgetProps.stringAttribute;
         const nextAttr = this.props.widgetProps.stringAttribute;
 
