@@ -28,7 +28,7 @@ interface CKEditorEvent {
     stop(): void;
 }
 
-export class Editor extends Component<EditorProps> {
+export class Editor extends Component<EditorProps, { uploadedImages: string[] }> {
     widgetProps: RichTextContainerProps;
     editor: CKEditorInstance | null;
     editorHookProps: EditorHookProps;
@@ -48,6 +48,9 @@ export class Editor extends Component<EditorProps> {
         this.onKeyPress = this.onKeyPress.bind(this);
         this.onPasteContent = this.onPasteContent.bind(this);
         this.onDropContent = this.onDropContent.bind(this);
+        this.state = {
+            uploadedImages: this.props.widgetProps.imagesDataSource?.items?.map(item => item.id) || []
+        };
     }
 
     setNewRenderProps(): void {
@@ -122,6 +125,7 @@ export class Editor extends Component<EditorProps> {
         this.updateEditorState({
             data: this.widgetProps.stringAttribute.value
         });
+        this.editor.mx_images = this.state.uploadedImages;
     }
 
     onDestroy(): void {
@@ -199,7 +203,7 @@ export class Editor extends Component<EditorProps> {
             this.editor.on("drop", this.onDropContent);
 
             const self = this;
-            this.editor.on("mx_upload_image", (event: any) => {
+            this.editor.on("mx_upload_image", (event: { data: File | Blob }) => {
                 const { uploadImageDataParameter, uploadImage } = this.widgetProps;
                 if (!uploadImage || !uploadImageDataParameter) {
                     return;
@@ -280,17 +284,13 @@ export class Editor extends Component<EditorProps> {
         if (prevImageAttr !== nextImageAttr || prevImageAttr?.value !== nextImageAttr?.value) {
             const imageId = Number(nextImageAttr?.value);
             if (imageId) {
+                this.setState({ uploadedImages: [...this.state.uploadedImages, nextImageAttr?.value as string] });
                 const editorData = this.editor.getData() as string;
                 // TODO: sanitize
                 const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
-                const start = content.indexOf('<img src="blob:');
-                if (start > -1) {
-                    const end = content.indexOf('"', start + 14);
-                    // do not use imageId directly because it cannot handle big numbers
-                    const updatedData =
-                        content.substring(0, start) +
-                        `<img src="/file?guid=${nextImageAttr?.value}` +
-                        content.substring(end);
+                const match = content.match(/\<img.+src\=(?:\"|\')(blob:.+?)(?:\"|\')(?:.+?)\>/);
+                if (match && match.length > 1) {
+                    const updatedData = content.replace(match[1], `/file?guid=${nextImageAttr?.value}`);
                     console.log("debug componentDidUpdate", updatedData);
                     this.widgetProps.stringAttribute.setValue(updatedData);
                     this.widgetProps.uploadImageDataParameter?.setValue("");
@@ -309,7 +309,6 @@ export class Editor extends Component<EditorProps> {
 
     render(): JSX.Element | null {
         const [key, config] = this.getRenderProps();
-
         return <MainEditor key={key} config={config} />;
     }
 }
