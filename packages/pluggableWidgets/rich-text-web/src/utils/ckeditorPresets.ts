@@ -102,6 +102,7 @@ function createPreset(type: "basic" | "standard" | "full"): CKEditorConfig {
             config.toolbarGroups = toolbarGroup;
             config.removeButtons =
                 "Save,Templates,NewPage,ExportPdf,Preview,Print,Find,Replace,SelectAll,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Underline,Subscript,Superscript,CopyFormatting,CreateDiv,JustifyLeft,BidiLtr,BidiRtl,JustifyCenter,JustifyRight,Language,JustifyBlock,Smiley,PageBreak,Iframe,TextColor,BGColor,Font,FontSize,ShowBlocks";
+            config.extraPlugins = "mxfiles";
             break;
         case "full":
             toolbarGroup = [...TOOLBAR_GROUP];
