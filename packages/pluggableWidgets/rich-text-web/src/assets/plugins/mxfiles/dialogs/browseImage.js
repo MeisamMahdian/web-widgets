@@ -36,7 +36,8 @@ CKEDITOR.dialog.add("browseImageDialog", function (editor) {
                             {
                                 type: "text",
                                 id: "width",
-                                label: "Width"
+                                label: "Width",
+                                default: "100%"
                             },
                             {
                                 type: "text",
@@ -68,7 +69,8 @@ CKEDITOR.dialog.add("browseImageDialog", function (editor) {
                             {
                                 type: "text",
                                 id: "width",
-                                label: "Width"
+                                label: "Width",
+                                default: "100%"
                             },
                             {
                                 type: "text",
@@ -106,7 +108,9 @@ CKEDITOR.dialog.add("browseImageDialog", function (editor) {
                 let content = "";
                 if (editor.mx_images && editor.mx_images.length > 0) {
                     editor.mx_images.forEach(guid => {
-                        content += `<div onclick="this.getElementsByTagName('input')[0].checked=true"><input type="radio" name="selectedImage" value="${guid}"//><img src="/file?guid=${guid}"/></div>`;
+                        content += `<div onclick="this.getElementsByTagName('input')[0].checked=true">
+                            <input type="radio" name="selectedImage" value="${guid}"//>
+                            <img src="/file?guid=${guid}" style="max-width:200px;" /></div>`;
                     });
                 } else {
                     content = "no image is available";

@@ -5,7 +5,6 @@ import { RichTextContainerProps } from "../../typings/RichTextProps";
 import { getCKEditorConfig } from "../utils/ckeditorConfigs";
 import { MainEditor } from "./MainEditor";
 import DOMPurify from "dompurify";
-import { ActionValue, EditableValue } from "mendix";
 import { imageToBase64 } from "src/utils/imageTools";
 
 const FILE_SIZE_LIMIT = 1048576; // Binary bytes for 1MB
@@ -45,11 +44,14 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         this.editorKey = this.getNewKey();
         this.editorHookProps = this.getNewEditorHookProps();
         this.onChange = debounce(this.onChange.bind(this), 500);
+        this.onUploadImage = debounce(this.onUploadImage.bind(this), 500);
         this.onKeyPress = this.onKeyPress.bind(this);
         this.onPasteContent = this.onPasteContent.bind(this);
         this.onDropContent = this.onDropContent.bind(this);
         this.state = {
-            uploadedImages: this.props.widgetProps.imagesDataSource?.items?.map(item => item.id) || []
+            uploadedImages: this.props.widgetProps.enableUploadImages
+                ? this.props.widgetProps.imagesDataSource?.items?.map(item => item.id) || []
+                : []
         };
     }
 
@@ -125,7 +127,10 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         this.updateEditorState({
             data: this.widgetProps.stringAttribute.value
         });
-        this.editor.mx_images = this.state.uploadedImages;
+
+        if (this.props.widgetProps.enableUploadImages) {
+            this.editor.mx_images = this.state.uploadedImages;
+        }
     }
 
     onDestroy(): void {
@@ -183,11 +188,21 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         this.widgetProps.onChange?.execute();
     }
 
-    onUploadImage(imageData: File | Blob, uploadImageDataParameter: EditableValue, uploadImage: ActionValue): void {
+    onUploadImage(event: { data: File | Blob }): void {
+        const { uploadImageDataParameter, uploadImage } = this.widgetProps;
+        if (!uploadImage || !uploadImageDataParameter) {
+            return;
+        }
+
+        const editorData = this.editor.getData();
+        // TODO: sanitize
+        const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
+        this.widgetProps.stringAttribute.setValue(content);
         if (!uploadImage.canExecute) {
             return;
         }
-        imageToBase64(imageData).then(imageString => {
+
+        imageToBase64(event.data).then(imageString => {
             const formatType = ";base64,";
             const dataPart = imageString.substring(imageString.indexOf(formatType) + formatType.length);
             uploadImageDataParameter.setValue(dataPart);
@@ -201,19 +216,7 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
             this.editor.on("key", this.onKeyPress);
             this.editor.on("paste", this.onPasteContent);
             this.editor.on("drop", this.onDropContent);
-
-            const self = this;
-            this.editor.on("mx_upload_image", (event: { data: File | Blob }) => {
-                const { uploadImageDataParameter, uploadImage } = this.widgetProps;
-                if (!uploadImage || !uploadImageDataParameter) {
-                    return;
-                }
-                const editorData = this.editor.getData();
-                // TODO: sanitize
-                const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
-                this.widgetProps.stringAttribute.setValue(content);
-                self.onUploadImage(event.data, uploadImageDataParameter, uploadImage);
-            });
+            this.editor.on("mx_upload_image", this.onUploadImage);
         }
     }
 
@@ -278,32 +281,35 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         this.lastSentValue = undefined;
     }
 
-    componentDidUpdate(): void {
-        const prevImageAttr = this.widgetProps.uploadImageDataParameter;
-        const nextImageAttr = this.props.widgetProps.uploadImageDataParameter;
-        if (prevImageAttr !== nextImageAttr || prevImageAttr?.value !== nextImageAttr?.value) {
-            const imageId = Number(nextImageAttr?.value);
-            if (imageId) {
-                this.setState({ uploadedImages: [...this.state.uploadedImages, nextImageAttr?.value as string] });
-                const editorData = this.editor.getData() as string;
-                // TODO: sanitize
-                const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
-                const match = content.match(/\<img.+src\=(?:\"|\')(blob:.+?)(?:\"|\')(?:.+?)\>/);
-                if (match && match.length > 1) {
-                    const updatedData = content.replace(match[1], `/file?guid=${nextImageAttr?.value}`);
-                    console.log("debug componentDidUpdate", updatedData);
-                    this.widgetProps.stringAttribute.setValue(updatedData);
-                    this.widgetProps.uploadImageDataParameter?.setValue("");
-                }
+    updateImageSource(imageGuid: string): void {
+        const imageId = Number(imageGuid);
+        if (imageId) {
+            this.setState({ uploadedImages: [...this.state.uploadedImages, imageGuid] });
+            const editorData = this.editor.getData() as string;
+            // TODO: sanitize
+            const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
+            const match = content.match(/\<img.+src\=(?:\"|\')(blob:.+?)(?:\"|\')(?:.+?)\>/);
+            if (match && match.length > 1) {
+                const updatedData = content.replace(match[1], `/file?guid=${imageGuid}`);
+                console.log("debug componentDidUpdate", updatedData);
+                this.widgetProps.stringAttribute.setValue(updatedData);
+                this.widgetProps.uploadImageDataParameter?.setValue("");
             }
         }
+    }
 
-        const nextImages = this.props.widgetProps.imagesDataSource;
-        console.log("debug this.state.uploadedImages.length", this.state.uploadedImages.length);
-        console.log("debug nextImages?.items?.length", nextImages?.items?.length);
-        console.log("debug nextImages?.items?.length", nextImages?.items?.length);
-        if (this.state.uploadedImages.length === 0 && nextImages?.items?.length) {
-            this.setState({ uploadedImages: nextImages?.items?.map(item => item.id) || [] });
+    componentDidUpdate(): void {
+        if (this.props.widgetProps.enableUploadImages) {
+            const prevImageDataAttr = this.widgetProps.uploadImageDataParameter;
+            const nextImageDataAttr = this.props.widgetProps.uploadImageDataParameter;
+            if (prevImageDataAttr !== nextImageDataAttr) {
+                this.updateImageSource(nextImageDataAttr?.value as string);
+            }
+
+            const nextImages = this.props.widgetProps.imagesDataSource;
+            if (this.state.uploadedImages.length === 0 && nextImages?.items?.length) {
+                this.setState({ uploadedImages: nextImages?.items?.map(item => item.id) || [] });
+            }
         }
 
         const prevAttr = this.widgetProps.stringAttribute;
