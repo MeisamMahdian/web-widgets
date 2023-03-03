@@ -5,7 +5,7 @@ import { RichTextContainerProps } from "../../typings/RichTextProps";
 import { getCKEditorConfig } from "../utils/ckeditorConfigs";
 import { MainEditor } from "./MainEditor";
 import DOMPurify from "dompurify";
-import { imageToBase64 } from "src/utils/imageTools";
+import { imageToBase64, uploadImageSanitizeOption } from "../utils/imageTools";
 
 const FILE_SIZE_LIMIT = 1048576; // Binary bytes for 1MB
 
@@ -180,7 +180,12 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
     onChange(_event: CKEditorEventPayload<"change">): void {
         if (this.editor) {
             const editorData = this.editor.getData();
-            const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
+            const content = this.widgetProps.sanitizeContent
+                ? DOMPurify.sanitize(
+                      editorData,
+                      this.props.widgetProps.enableUploadImages ? uploadImageSanitizeOption : {}
+                  )
+                : editorData;
             this.lastSentValue = content;
             this.widgetProps.stringAttribute.setValue(content);
         }
@@ -195,8 +200,9 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         }
 
         const editorData = this.editor.getData();
-        // TODO: sanitize
-        const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
+        const content = this.widgetProps.sanitizeContent
+            ? DOMPurify.sanitize(editorData, uploadImageSanitizeOption)
+            : editorData;
         this.widgetProps.stringAttribute.setValue(content);
         if (!uploadImage.canExecute) {
             return;
@@ -286,8 +292,9 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         if (imageId) {
             this.setState({ uploadedImages: [...this.state.uploadedImages, imageGuid] });
             const editorData = this.editor.getData() as string;
-            // TODO: sanitize
-            const content = this.widgetProps.sanitizeContent ? DOMPurify.sanitize(editorData) : editorData;
+            const content = this.widgetProps.sanitizeContent
+                ? DOMPurify.sanitize(editorData, uploadImageSanitizeOption)
+                : editorData;
             const match = content.match(/\<img.+src\=(?:\"|\')(blob:.+?)(?:\"|\')(?:.+?)\>/);
             if (match && match.length > 1) {
                 const updatedData = content.replace(match[1], `/file?guid=${imageGuid}`);

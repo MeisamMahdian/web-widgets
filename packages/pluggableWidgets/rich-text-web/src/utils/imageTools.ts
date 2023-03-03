@@ -12,4 +12,8 @@ const imageToBase64 = (blob: File | Blob): Promise<string> => {
     });
 };
 
-export { imageToBase64 };
+const uploadImageSanitizeOption = {
+    ALLOW_UNKNOWN_PROTOCOLS: true // to allow blob in src
+};
+
+export { imageToBase64, uploadImageSanitizeOption };
