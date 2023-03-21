@@ -1,6 +1,6 @@
 CKEDITOR.dialog.add("browseImageDialog", function (editor) {
     return {
-        title: "Upload Image",
+        title: "Insert Image",
         minWidth: 400,
         minHeight: 300,
 
@@ -55,7 +55,7 @@ CKEDITOR.dialog.add("browseImageDialog", function (editor) {
                     {
                         type: "html",
                         id: "browse",
-                        html: '<div id="browseContainer"></div>'
+                        html: '<div id="browseContainer" style="overflow:auto;max-height:30vh;"></div>'
                     },
                     {
                         type: "text",
@@ -109,8 +109,8 @@ CKEDITOR.dialog.add("browseImageDialog", function (editor) {
                 if (editor.mx_images && editor.mx_images.length > 0) {
                     editor.mx_images.forEach(guid => {
                         content += `<div onclick="this.getElementsByTagName('input')[0].checked=true">
-                            <input type="radio" name="selectedImage" value="${guid}"//>
-                            <img src="/file?guid=${guid}" style="max-width:200px;" /></div>`;
+                            <input type="radio" name="selectedImage" value="${guid}" style="margin:12px;"//>
+                            <img src="/file?guid=${guid}" style="max-width:300px;cursor:pointer;" /></div>`;
                     });
                 } else {
                     content = "no image is available";
