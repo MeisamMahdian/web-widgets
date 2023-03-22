@@ -27,7 +27,7 @@ interface CKEditorEvent {
     stop(): void;
 }
 
-export class Editor extends Component<EditorProps, { uploadedImages: string[] }> {
+export class Editor extends Component<EditorProps> {
     widgetProps: RichTextContainerProps;
     editor: CKEditorInstance | null;
     editorHookProps: EditorHookProps;
@@ -35,6 +35,7 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
     editorScript = "widgets/ckeditor/ckeditor.js";
     element: HTMLElement;
     lastSentValue: string | undefined;
+    uploadedImages: string[] = [];
 
     constructor(props: EditorProps) {
         super(props);
@@ -48,11 +49,9 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         this.onKeyPress = this.onKeyPress.bind(this);
         this.onPasteContent = this.onPasteContent.bind(this);
         this.onDropContent = this.onDropContent.bind(this);
-        this.state = {
-            uploadedImages: this.props.widgetProps.enableUploadImages
-                ? this.props.widgetProps.imagesDataSource?.items?.map(item => item.id) || []
-                : []
-        };
+        this.uploadedImages = this.props.widgetProps.enableUploadImages
+            ? this.props.widgetProps.imagesDataSource?.items?.map(item => item.id) || []
+            : [];
     }
 
     setNewRenderProps(): void {
@@ -129,7 +128,7 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         });
 
         if (this.props.widgetProps.enableUploadImages) {
-            this.editor.mx_images = this.state.uploadedImages;
+            this.editor.mx_images = this.uploadedImages;
         }
     }
 
@@ -199,11 +198,6 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
             return;
         }
 
-        const editorData = this.editor.getData();
-        const content = this.widgetProps.sanitizeContent
-            ? DOMPurify.sanitize(editorData, uploadImageSanitizeOption)
-            : editorData;
-        this.widgetProps.stringAttribute.setValue(content);
         if (!uploadImage.canExecute) {
             return;
         }
@@ -290,7 +284,7 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
     updateImageSource(imageGuid: string): void {
         const imageId = Number(imageGuid);
         if (imageId) {
-            this.setState({ uploadedImages: [...this.state.uploadedImages, imageGuid] });
+            this.uploadedImages.push(imageGuid);
             const editorData = this.editor.getData() as string;
             const content = this.widgetProps.sanitizeContent
                 ? DOMPurify.sanitize(editorData, uploadImageSanitizeOption)
@@ -298,7 +292,6 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
             const match = content.match(/\<img.+src\=(?:\"|\')(blob:.+?)(?:\"|\')(?:.+?)\>/);
             if (match && match.length > 1) {
                 const updatedData = content.replace(match[1], `/file?guid=${imageGuid}`);
-                console.log("debug componentDidUpdate", updatedData);
                 this.widgetProps.stringAttribute.setValue(updatedData);
                 this.widgetProps.uploadImageDataParameter?.setValue("");
             }
@@ -309,13 +302,13 @@ export class Editor extends Component<EditorProps, { uploadedImages: string[] }>
         if (this.props.widgetProps.enableUploadImages) {
             const prevImageDataAttr = this.widgetProps.uploadImageDataParameter;
             const nextImageDataAttr = this.props.widgetProps.uploadImageDataParameter;
-            if (prevImageDataAttr !== nextImageDataAttr) {
+            if (prevImageDataAttr !== nextImageDataAttr && nextImageDataAttr?.value) {
                 this.updateImageSource(nextImageDataAttr?.value as string);
             }
 
             const nextImages = this.props.widgetProps.imagesDataSource;
-            if (this.state.uploadedImages.length === 0 && nextImages?.items?.length) {
-                this.setState({ uploadedImages: nextImages?.items?.map(item => item.id) || [] });
+            if (this.uploadedImages.length === 0 && nextImages?.items?.length) {
+                this.uploadedImages = nextImages?.items?.map(item => item.id) || [];
             }
         }
 
