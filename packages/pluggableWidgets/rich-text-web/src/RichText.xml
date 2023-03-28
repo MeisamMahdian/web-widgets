@@ -306,16 +306,13 @@
                     <caption>Images datasource</caption>
                     <description />
                 </property>
-                <property key="uploadImage" type="action" required="false">
-                    <caption>Upload image</caption>
-                    <description>Provide a nanoflow or microflow for uploading image. Image data will be in Image data attribute</description>
+                <property key="uploadImageEndpoint" type="string" required="false">
+                    <caption>Upload Image Endpoint</caption>
+                    <description />
                 </property>
-                <property key="uploadImageDataParameter" type="attribute" required="false">
-                    <caption>Image data attribute</caption>
-                    <description>The widget fills this string attribute with uploaded image data as base64. Upload image microflow should save the image using this data and then fill this attribute with the guid of the image.</description>
-                    <attributeTypes>
-                        <attributeType name="String" />
-                    </attributeTypes>
+                <property key="deleteImage" type="action" required="false">
+                    <caption>Delete image</caption>
+                    <description />
                 </property>
             </propertyGroup>
         </propertyGroup>

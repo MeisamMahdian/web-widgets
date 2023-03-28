@@ -5,7 +5,7 @@ import { RichTextContainerProps } from "../../typings/RichTextProps";
 import { getCKEditorConfig } from "../utils/ckeditorConfigs";
 import { MainEditor } from "./MainEditor";
 import DOMPurify from "dompurify";
-import { imageToBase64, uploadImageSanitizeOption } from "../utils/imageTools";
+import { uploadImageSanitizeOption } from "../utils/imageTools";
 
 const FILE_SIZE_LIMIT = 1048576; // Binary bytes for 1MB
 
@@ -82,7 +82,7 @@ export class Editor extends Component<EditorProps> {
         return keys.some(key => {
             // We skip stringAttribute as it always changes. And we
             // handle updates in componentDidUpdate method.
-            if (key === "stringAttribute" || key === "uploadImageDataParameter") {
+            if (key === "stringAttribute") {
                 return false;
             }
 
@@ -193,21 +193,31 @@ export class Editor extends Component<EditorProps> {
     }
 
     onUploadImage(event: { data: File | Blob }): void {
-        const { uploadImageDataParameter, uploadImage } = this.widgetProps;
-        if (!uploadImage || !uploadImageDataParameter) {
-            return;
-        }
-
-        if (!uploadImage.canExecute) {
-            return;
-        }
-
-        imageToBase64(event.data).then(imageString => {
-            const formatType = ";base64,";
-            const dataPart = imageString.substring(imageString.indexOf(formatType) + formatType.length);
-            uploadImageDataParameter.setValue(dataPart);
-            uploadImage.execute();
-        });
+        const { uploadImageEndpoint, name } = this.widgetProps;
+        window
+            .fetch(`${uploadImageEndpoint}/${name}`, {
+                method: "POST",
+                body: event.data,
+                headers: {
+                    Origin: window.location.origin,
+                    "Content-Type": "application/json",
+                    "x-csrf-token": window.mx ? window.mx.session.getConfig("csrftoken") : ""
+                }
+            })
+            .then(response => {
+                if (!response.ok || response.status >= 400) {
+                    throw Error(
+                        JSON.stringify({
+                            status: response.status,
+                            statusText: response.statusText,
+                            ok: response.ok,
+                            body: response.body
+                        })
+                    );
+                }
+                return response.json();
+            })
+            .then(imageId => this.updateImageSource(imageId));
     }
 
     addListeners(): void {
@@ -282,30 +292,24 @@ export class Editor extends Component<EditorProps> {
     }
 
     updateImageSource(imageGuid: string): void {
-        const imageId = Number(imageGuid);
-        if (imageId) {
-            this.uploadedImages.push(imageGuid);
-            const editorData = this.editor.getData() as string;
-            const content = this.widgetProps.sanitizeContent
-                ? DOMPurify.sanitize(editorData, uploadImageSanitizeOption)
-                : editorData;
-            const match = content.match(/\<img.+src\=(?:\"|\')(blob:.+?)(?:\"|\')(?:.+?)\>/);
-            if (match && match.length > 1) {
-                const updatedData = content.replace(match[1], `/file?guid=${imageGuid}`);
-                this.widgetProps.stringAttribute.setValue(updatedData);
-                this.widgetProps.uploadImageDataParameter?.setValue("");
-            }
+        const validId = imageGuid.match(/^\d+$/);
+        if (!validId) {
+            return;
+        }
+        this.uploadedImages.push(imageGuid);
+        const editorData = this.editor.getData() as string;
+        const content = this.widgetProps.sanitizeContent
+            ? DOMPurify.sanitize(editorData, uploadImageSanitizeOption)
+            : editorData;
+        const match = content.match(/\<img.+src\=(?:\"|\')(blob:.+?)(?:\"|\')(?:.+?)\>/);
+        if (match && match.length > 1) {
+            const updatedData = content.replace(match[1], `/file?guid=${imageGuid}`);
+            this.widgetProps.stringAttribute.setValue(updatedData);
         }
     }
 
     componentDidUpdate(): void {
         if (this.props.widgetProps.enableUploadImages) {
-            const prevImageDataAttr = this.widgetProps.uploadImageDataParameter;
-            const nextImageDataAttr = this.props.widgetProps.uploadImageDataParameter;
-            if (prevImageDataAttr !== nextImageDataAttr && nextImageDataAttr?.value) {
-                this.updateImageSource(nextImageDataAttr?.value as string);
-            }
-
             const nextImages = this.props.widgetProps.imagesDataSource;
             if (this.uploadedImages.length === 0 && nextImages?.items?.length) {
                 this.uploadedImages = nextImages?.items?.map(item => item.id) || [];

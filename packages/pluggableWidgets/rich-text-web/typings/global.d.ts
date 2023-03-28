@@ -21,7 +21,12 @@ export interface MXGlobalObject {
             callback: (obj)=> void;
             error: (error) => void;
         }) => void;
-    }
+    },
+    session: session;
+}
+
+interface session {
+    getConfig(value: string): string;
 }
 
 declare global {
