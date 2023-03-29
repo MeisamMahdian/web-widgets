@@ -292,8 +292,7 @@ export class Editor extends Component<EditorProps> {
     }
 
     updateImageSource(imageGuid: string): void {
-        const validId = imageGuid.match(/^\d+$/);
-        if (!validId) {
+        if (typeof imageGuid !== "number") {
             return;
         }
         this.uploadedImages.push(imageGuid);
