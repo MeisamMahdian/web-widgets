@@ -45,7 +45,6 @@ export class Editor extends Component<EditorProps> {
         this.editorKey = this.getNewKey();
         this.editorHookProps = this.getNewEditorHookProps();
         this.onChange = debounce(this.onChange.bind(this), 500);
-        this.onUploadImage = debounce(this.onUploadImage.bind(this), 500);
         this.onKeyPress = this.onKeyPress.bind(this);
         this.onPasteContent = this.onPasteContent.bind(this);
         this.onDropContent = this.onDropContent.bind(this);
@@ -192,41 +191,14 @@ export class Editor extends Component<EditorProps> {
         this.widgetProps.onChange?.execute();
     }
 
-    onUploadImage(event: { data: File | Blob }): void {
-        const { uploadImageEndpoint, name } = this.widgetProps;
-        window
-            .fetch(`${uploadImageEndpoint}/${name}`, {
-                method: "POST",
-                body: event.data,
-                headers: {
-                    Origin: window.location.origin,
-                    "Content-Type": "application/json",
-                    "x-csrf-token": window.mx ? window.mx.session.getConfig("csrftoken") : ""
-                }
-            })
-            .then(response => {
-                if (!response.ok || response.status >= 400) {
-                    throw Error(
-                        JSON.stringify({
-                            status: response.status,
-                            statusText: response.statusText,
-                            ok: response.ok,
-                            body: response.body
-                        })
-                    );
-                }
-                return response.json();
-            })
-            .then(imageId => this.updateImageSource(imageId));
-    }
-
     addListeners(): void {
         if (this.editor && !this.editor.readOnly) {
             this.editor.on("change", this.onChange);
             this.editor.on("key", this.onKeyPress);
             this.editor.on("paste", this.onPasteContent);
             this.editor.on("drop", this.onDropContent);
-            this.editor.on("mx_upload_image", this.onUploadImage);
+            const { uploadImageEndpoint, name } = this.widgetProps;
+            this.editor.uploadUrl = `${uploadImageEndpoint}/${name}`;
         }
     }
 
@@ -235,7 +207,6 @@ export class Editor extends Component<EditorProps> {
         this.editor?.removeListener("key", this.onKeyPress);
         this.editor?.removeListener("paste", this.onPasteContent);
         this.editor?.removeListener("drop", this.onDropContent);
-        this.editor?.removeListener("mx_upload_image", this.onUploadImage);
     }
 
     updateEditorState(

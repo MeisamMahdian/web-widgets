@@ -10,7 +10,7 @@ import {
     createCustomToolbar
 } from "./ckeditorPresets";
 
-export type PluginName = "codesnippet" | "openlink" | "indent" | "indentlist" | "mxfiles";
+export type PluginName = "codesnippet" | "openlink" | "indent" | "indentlist" | "mxfiles" | "mxupload";
 
 const PLUGIN_CONFIGS = {
     openlink: {
@@ -31,7 +31,8 @@ const PLUGIN_CONFIGS = {
     },
     indent: null,
     indentlist: null,
-    mxfiles: null
+    mxfiles: null,
+    mxupload: null
 };
 
 export function getToolbarGroupByName(name: string): ToolbarGroup | undefined {
@@ -173,7 +174,7 @@ export function getCKEditorConfig(widgetProps: RichTextContainerProps): CKEditor
     }
 
     if (enableUploadImages) {
-        plugins.push("mxfiles");
+        plugins.push("mxfiles", "mxupload");
     }
 
     for (const plugin of plugins) {
