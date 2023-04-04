@@ -59,7 +59,7 @@ export function getProperties(
         hidePropertiesIn(
             defaultProperties,
             values,
-            toolbarGroups.concat(["imagesDataSource", "uploadImageEndpoint", "deleteImage"])
+            toolbarGroups.concat(["imagesDataSource", "uploadImageEndpoint", "onUpdateImages"])
         );
     }
     return defaultProperties;

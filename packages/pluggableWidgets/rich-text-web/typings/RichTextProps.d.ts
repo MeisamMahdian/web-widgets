@@ -74,9 +74,9 @@ export interface RichTextContainerProps {
     allowedContent: string;
     disallowedContent: string;
     enableUploadImages: boolean;
-    imagesDataSource?: ListValue;
     uploadImageEndpoint: string;
-    deleteImage?: ActionValue;
+    onUpdateImages?: ActionValue;
+    imagesDataSource?: ListValue;
 }
 
 export interface RichTextPreviewProps {
@@ -116,7 +116,7 @@ export interface RichTextPreviewProps {
     allowedContent: string;
     disallowedContent: string;
     enableUploadImages: boolean;
-    imagesDataSource: {} | { type: string } | null;
     uploadImageEndpoint: string;
-    deleteImage: {} | null;
+    onUpdateImages: {} | null;
+    imagesDataSource: {} | { type: string } | null;
 }

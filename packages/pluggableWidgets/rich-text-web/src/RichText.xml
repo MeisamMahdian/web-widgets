@@ -302,16 +302,16 @@
                     <caption>Enable upload image</caption>
                     <description />
                 </property>
-                <property key="imagesDataSource" type="datasource" isList="true" required="false">
-                    <caption>Images datasource</caption>
-                    <description />
-                </property>
                 <property key="uploadImageEndpoint" type="string" required="false">
                     <caption>Upload Image Endpoint</caption>
-                    <description />
+                    <description>Then endpoint that receives the image entity as body parameter and passes the image guid in return.</description>
                 </property>
-                <property key="deleteImage" type="action" required="false">
-                    <caption>Delete image</caption>
+                <property key="onUpdateImages" type="action" required="false">
+                    <caption>Images Updated</caption>
+                    <description>List of images in use has been updated</description>
+                </property>
+                <property key="imagesDataSource" type="datasource" isList="true" required="false">
+                    <caption>Images Datasource</caption>
                     <description />
                 </property>
             </propertyGroup>
