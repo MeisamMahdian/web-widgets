@@ -317,6 +317,32 @@
                         <attributeType name="String" />
                     </attributeTypes>
                 </property>
+                <property key="enableMentions" type="boolean" defaultValue="false">
+                    <caption>Enable Mentions</caption>
+                    <description />
+                </property>
+                <property key="mentionDatasource" type="datasource" isList="true" required="false">
+                    <caption>Mentions datasource</caption>
+                    <description />
+                </property>
+                <property key="mentionItemId" type="attribute" dataSource="mentionDatasource">
+                    <caption>Mention Item Id</caption>
+                    <description />
+                    <attributeTypes>
+                        <attributeType name="String" />
+                    </attributeTypes>
+                </property>
+                <property key="mentionItemText" type="attribute" dataSource="mentionDatasource">
+                    <caption>Mention Item Text</caption>
+                    <description />
+                    <attributeTypes>
+                        <attributeType name="String" />
+                    </attributeTypes>
+                </property>
+                <property key="enableTagging" type="boolean" defaultValue="false">
+                    <caption>Enable Tagging</caption>
+                    <description />
+                </property>
             </propertyGroup>
         </propertyGroup>
     </properties>

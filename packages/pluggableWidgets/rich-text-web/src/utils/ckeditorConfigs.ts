@@ -10,7 +10,7 @@ import {
     createCustomToolbar
 } from "./ckeditorPresets";
 
-export type PluginName = "codesnippet" | "openlink" | "indent" | "indentlist" | "mxupload";
+export type PluginName = "codesnippet" | "openlink" | "indent" | "indentlist" | "mxupload" | "mentions";
 
 const PLUGIN_CONFIGS = {
     openlink: {
@@ -31,7 +31,18 @@ const PLUGIN_CONFIGS = {
     },
     indent: null,
     indentlist: null,
-    mxupload: null
+    mxupload: {
+        extraPlugins: "mxupload",
+        name: "MxUpload",
+        config: {}
+    },
+    mentions: {
+        extraPlugins: "mentions",
+        name: "Mentions",
+        config: {
+            mentions: []
+        }
+    }
 };
 
 export function getToolbarGroupByName(name: string): ToolbarGroup | undefined {
@@ -141,7 +152,9 @@ export function getCKEditorConfig(widgetProps: RichTextContainerProps): CKEditor
         widthUnit,
         height,
         heightUnit,
-        enableUploadImages
+        enableUploadImages,
+        enableMentions,
+        enableTagging
     } = widgetProps;
 
     const dimensions = getDimensions({
@@ -175,6 +188,10 @@ export function getCKEditorConfig(widgetProps: RichTextContainerProps): CKEditor
     if (enableUploadImages) {
         config.extraPlugins = config.extraPlugins ? config.extraPlugins + ",mxupload" : "mxupload";
         plugins.push("mxupload");
+    }
+
+    if (enableMentions || enableTagging) {
+        plugins.push("mentions");
     }
 
     for (const plugin of plugins) {

@@ -109,6 +109,26 @@ export class Editor extends Component<EditorProps> {
         return new URL(this.editorScript, window.mx.remoteUrl).toString();
     }
 
+    feedMention(options: MentionQuery, callbackF: TCallBackFunction): void {
+        callbackF([
+            {
+                id: "10",
+                type: options.marker,
+                name: "Sam"
+            },
+            {
+                id: "11",
+                type: options.marker,
+                name: "Tom"
+            },
+            {
+                id: "12",
+                type: options.marker,
+                name: "Janet"
+            }
+        ]);
+    }
+
     getNewEditorHookProps(): EditorHookProps {
         const onInstanceReady = this.onInstanceReady.bind(this);
         const onDestroy = this.onDestroy.bind(this);
@@ -125,6 +145,22 @@ export class Editor extends Component<EditorProps> {
             ];
             config.disallowedContent = { img: { styles: [] }, ...config.disallowedContent };
             config.disallowedContent.img.styles = [...config.disallowedContent.img.styles, "width", "height"];
+        }
+
+        if (this.widgetProps.enableMentions) {
+            config.mentions.push({
+                feed: this.feedMention,
+                minChars: 0,
+                marker: "@"
+            });
+        }
+
+        if (this.widgetProps.enableTagging) {
+            config.mentions.push({
+                feed: ["Good", "Bad", "Ugly"],
+                minChars: 0,
+                marker: "#"
+            });
         }
 
         return {
