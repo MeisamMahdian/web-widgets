@@ -7,7 +7,6 @@ type MentionQuery = {
 
 type MentionOrTagTemplate = {
     id: string | undefined;
-    type: MarkerType | undefined;
     name: string | undefined;
 };
 

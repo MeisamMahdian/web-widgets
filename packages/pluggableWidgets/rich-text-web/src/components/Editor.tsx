@@ -1,4 +1,5 @@
 import { debounce } from "@mendix/pluggable-widgets-commons";
+import { attribute, literal, startsWith } from "mendix/filters/builders";
 import { CKEditorEventPayload, CKEditorHookProps, CKEditorInstance } from "ckeditor4-react";
 import { Component, createElement } from "react";
 import { RichTextContainerProps } from "../../typings/RichTextProps";
@@ -38,6 +39,7 @@ export class Editor extends Component<EditorProps> {
     cancelRAF: (() => void) | undefined;
     hasFocus: boolean;
     uploadedImages: string[] = [];
+    mentionCallbackFn: TCallBackFunction | undefined;
 
     constructor(props: EditorProps) {
         super(props);
@@ -51,6 +53,7 @@ export class Editor extends Component<EditorProps> {
         this.onKeyPress = this.onKeyPress.bind(this);
         this.onDropOrPastedFile = this.onDropOrPastedFile.bind(this);
         this.hasFocus = false;
+        this.mentionCallbackFn = undefined;
     }
 
     setNewRenderProps(): void {
@@ -85,6 +88,10 @@ export class Editor extends Component<EditorProps> {
                 return false;
             }
 
+            if (key === "mentionDatasource") {
+                return false;
+            }
+
             if (key === "onChange") {
                 return false;
             }
@@ -109,25 +116,13 @@ export class Editor extends Component<EditorProps> {
         return new URL(this.editorScript, window.mx.remoteUrl).toString();
     }
 
-    feedMention(options: MentionQuery, callbackF: TCallBackFunction): void {
-        callbackF([
-            {
-                id: "10",
-                type: options.marker,
-                name: "Sam"
-            },
-            {
-                id: "11",
-                type: options.marker,
-                name: "Tom"
-            },
-            {
-                id: "12",
-                type: options.marker,
-                name: "Janet"
-            }
-        ]);
-    }
+    feedMention = (options: MentionQuery, callbackF: TCallBackFunction): void => {
+        if (this.widgetProps && this.widgetProps.mentionItemText && this.widgetProps.mentionItemText.filterable) {
+            const filterCond = startsWith(attribute(this.widgetProps.mentionItemText.id), literal(options.query));
+            this.widgetProps.mentionDatasource?.setFilter(filterCond);
+            this.mentionCallbackFn = callbackF;
+        }
+    };
 
     getNewEditorHookProps(): EditorHookProps {
         const onInstanceReady = this.onInstanceReady.bind(this);
@@ -152,14 +147,6 @@ export class Editor extends Component<EditorProps> {
                 feed: this.feedMention,
                 minChars: 0,
                 marker: "@"
-            });
-        }
-
-        if (this.widgetProps.enableTagging) {
-            config.mentions.push({
-                feed: ["Good", "Bad", "Ugly"],
-                minChars: 0,
-                marker: "#"
             });
         }
 
@@ -414,6 +401,22 @@ export class Editor extends Component<EditorProps> {
         if (prevAttr !== nextAttr) {
             this.widgetProps.stringAttribute = nextAttr;
             this.updateEditor(prevAttr, nextAttr);
+        }
+
+        const prevMention = this.widgetProps.mentionDatasource;
+        const nextMention = this.props.widgetProps.mentionDatasource;
+
+        if (this.mentionCallbackFn && prevMention !== nextMention) {
+            this.widgetProps.mentionDatasource = nextMention;
+            const mappedItems = nextMention?.items?.map(item => {
+                return {
+                    id: item.id.toString(),
+                    name: this.widgetProps.mentionItemText?.get(item).displayValue
+                };
+            });
+            if (mappedItems) {
+                this.mentionCallbackFn(mappedItems);
+            }
         }
     }
 
