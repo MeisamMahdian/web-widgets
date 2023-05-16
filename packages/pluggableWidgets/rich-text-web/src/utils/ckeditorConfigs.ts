@@ -153,8 +153,7 @@ export function getCKEditorConfig(widgetProps: RichTextContainerProps): CKEditor
         height,
         heightUnit,
         enableUploadImages,
-        enableMentions,
-        enableTagging
+        enableMentions
     } = widgetProps;
 
     const dimensions = getDimensions({
@@ -190,7 +189,7 @@ export function getCKEditorConfig(widgetProps: RichTextContainerProps): CKEditor
         plugins.push("mxupload");
     }
 
-    if (enableMentions || enableTagging) {
+    if (enableMentions) {
         plugins.push("mentions");
     }
 

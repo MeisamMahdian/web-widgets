@@ -40,6 +40,7 @@ export class Editor extends Component<EditorProps> {
     hasFocus: boolean;
     uploadedImages: string[] = [];
     mentionCallbackFn: TCallBackFunction | undefined;
+    parser = new DOMParser();
 
     constructor(props: EditorProps) {
         super(props);
@@ -89,6 +90,14 @@ export class Editor extends Component<EditorProps> {
             }
 
             if (key === "mentionDatasource") {
+                return false;
+            }
+
+            if (key === "uploadedImages") {
+                return false;
+            }
+
+            if (key === "mentionedList") {
                 return false;
             }
 
@@ -145,9 +154,13 @@ export class Editor extends Component<EditorProps> {
         if (this.widgetProps.enableMentions) {
             config.mentions.push({
                 feed: this.feedMention,
-                minChars: 0,
-                marker: "@"
+                minChars: 2,
+                throttle: 200,
+                marker: "@",
+                itemTemplate: '<li data-id="{id}">{name}</li>',
+                outputTemplate: '<a data-id="{id}" data-type="mention">{name}</a>'
             });
+            config.extraAllowedContent = ["a[data-id,data-type]"];
         }
 
         return {
@@ -276,6 +289,9 @@ export class Editor extends Component<EditorProps> {
             if (this.widgetProps.enableUploadImages) {
                 this.updateImageList(content);
             }
+            if (this.widgetProps.enableMentions) {
+                this.updateMentionList(content);
+            }
         }
     }
 
@@ -313,13 +329,34 @@ export class Editor extends Component<EditorProps> {
         }
 
         const matches = content.matchAll(/<img.*?src="(.*?)"/g);
-        this.uploadedImages = [];
+        const uploadedImages: string[] = [];
         for (const match of matches) {
             if (match.length > 0) {
-                this.uploadedImages.push(match[1]);
+                uploadedImages.push(match[1]);
+            }
+        }
+        this.widgetProps.uploadedImages.setValue(uploadedImages.join(","));
+    }
+
+    updateMentionList(content: string | undefined): void {
+        if (!this.widgetProps.enableMentions || !content) {
+            return;
+        }
+
+        const editorDoc = this.parser.parseFromString(content, "text/html");
+        const mentionElementsInDoc = editorDoc.querySelectorAll("a[data-type='mention']");
+        const foundUsers: string[] = [];
+
+        for (const el of Array.from(mentionElementsInDoc)) {
+            if (el.getAttribute("data-type") === "mention") {
+                const id = el.getAttribute("data-id");
+                if (id) {
+                    foundUsers.push(id);
+                }
             }
         }
         this.widgetProps.uploadedImages.setValue(this.uploadedImages.join(","));
+        this.widgetProps.mentionedList?.setValue(foundUsers.join(","));
     }
 
     updateEditorState(

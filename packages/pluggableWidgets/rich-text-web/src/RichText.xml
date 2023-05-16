@@ -339,9 +339,12 @@
                         <attributeType name="String" />
                     </attributeTypes>
                 </property>
-                <property key="enableTagging" type="boolean" defaultValue="false">
-                    <caption>Enable Tagging</caption>
-                    <description />
+                <property key="mentionedList" type="attribute" required="false">
+                    <caption>Mentioned List</caption>
+                    <description>List of mentions that has been used as content in comma separated format.</description>
+                    <attributeTypes>
+                        <attributeType name="String" />
+                    </attributeTypes>
                 </property>
             </propertyGroup>
         </propertyGroup>

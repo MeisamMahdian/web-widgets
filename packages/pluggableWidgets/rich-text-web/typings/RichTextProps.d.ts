@@ -81,7 +81,7 @@ export interface RichTextContainerProps {
     mentionDatasource?: ListValue;
     mentionItemId?: ListAttributeValue<string>;
     mentionItemText?: ListAttributeValue<string>;
-    enableTagging: boolean;
+    mentionedList?: EditableValue<string>;
 }
 
 export interface RichTextPreviewProps {
@@ -128,5 +128,5 @@ export interface RichTextPreviewProps {
     mentionDatasource: {} | { type: string } | null;
     mentionItemId: string;
     mentionItemText: string;
-    enableTagging: boolean;
+    mentionedList: string;
 }
