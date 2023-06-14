@@ -89,18 +89,6 @@ export class Editor extends Component<EditorProps> {
                 return false;
             }
 
-            if (key === "mentionDatasource") {
-                return false;
-            }
-
-            if (key === "uploadedImages") {
-                return false;
-            }
-
-            if (key === "mentionedList") {
-                return false;
-            }
-
             if (key === "onChange") {
                 return false;
             }
@@ -110,6 +98,14 @@ export class Editor extends Component<EditorProps> {
             }
 
             if (key === "uploadedImages") {
+                return false;
+            }
+
+            if (key === "mentionDatasource") {
+                return false;
+            }
+
+            if (key === "mentionedList") {
                 return false;
             }
 
@@ -355,7 +351,6 @@ export class Editor extends Component<EditorProps> {
                 }
             }
         }
-        this.widgetProps.uploadedImages.setValue(this.uploadedImages.join(","));
         this.widgetProps.mentionedList?.setValue(foundUsers.join(","));
     }
 
