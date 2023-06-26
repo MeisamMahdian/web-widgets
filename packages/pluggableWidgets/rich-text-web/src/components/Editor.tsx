@@ -1,11 +1,18 @@
 import { debounce } from "@mendix/pluggable-widgets-commons";
 import { attribute, literal, startsWith } from "mendix/filters/builders";
 import { CKEditorEventPayload, CKEditorHookProps, CKEditorInstance } from "ckeditor4-react";
-import { Component, createElement } from "react";
+import { Component, RefObject, createElement, createRef } from "react";
 import { RichTextContainerProps } from "../../typings/RichTextProps";
 import { getCKEditorConfig } from "../utils/ckeditorConfigs";
 import { MainEditor } from "./MainEditor";
 import DOMPurify from "dompurify";
+import {
+    MENTION_CLASS_NAME,
+    MENTION_TAG_NAME,
+    MENTION_ALLOWED_CONTENT,
+    MENTION_CONFIG,
+    getMentionedList
+} from "../utils/mention";
 
 const FILE_SIZE_LIMIT = 1048576; // Binary bytes for 1MB
 
@@ -40,7 +47,7 @@ export class Editor extends Component<EditorProps> {
     hasFocus: boolean;
     uploadedImages: string[] = [];
     mentionCallbackFn: TCallBackFunction | undefined;
-    parser = new DOMParser();
+    spanSelect: RefObject<HTMLSpanElement> | undefined = createRef<HTMLSpanElement>();
 
     constructor(props: EditorProps) {
         super(props);
@@ -53,6 +60,8 @@ export class Editor extends Component<EditorProps> {
         this.applyChangesDebounce = debounce(this.applyChangesImmediately.bind(this), 500);
         this.onKeyPress = this.onKeyPress.bind(this);
         this.onDropOrPastedFile = this.onDropOrPastedFile.bind(this);
+        this.onSelectChange = this.onSelectChange.bind(this);
+        this.onBlur = this.onBlur.bind(this);
         this.hasFocus = false;
         this.mentionCallbackFn = undefined;
     }
@@ -148,15 +157,9 @@ export class Editor extends Component<EditorProps> {
         }
 
         if (this.widgetProps.enableMentions) {
-            config.mentions.push({
-                feed: this.feedMention,
-                minChars: 2,
-                throttle: 200,
-                marker: "@",
-                itemTemplate: '<li data-id="{id}">{name}</li>',
-                outputTemplate: '<a data-id="{id}" data-type="mention">{name}</a>'
-            });
-            config.extraAllowedContent = ["a[data-id,data-type]"];
+            config.mentions.push({ ...MENTION_CONFIG, feed: this.feedMention });
+            config.extraAllowedContent = [MENTION_ALLOWED_CONTENT, "img[width,height]"];
+            config.disallowedContent = "img{width,height}";
         }
 
         return {
@@ -183,6 +186,14 @@ export class Editor extends Component<EditorProps> {
             data: this.widgetProps.stringAttribute.value
         });
         this.updateImageList(this.widgetProps.stringAttribute.value);
+        if (this.widgetProps.enableMentions) {
+            editor.editable().on("click", (e: any) => {
+                // Check if click was on Tag or Mention
+                if (e.data?.getTarget()?.data("type") === "mention") {
+                    console.log(`${e.data.getTarget().data("id")} has been clicked`);
+                }
+            });
+        }
     }
 
     onDestroy(): void {
@@ -291,6 +302,31 @@ export class Editor extends Component<EditorProps> {
         }
     }
 
+    onSelectChange = (): void => {
+        // If User navigates in edit mode to Mention or Tag we add a Class name to simulate user Selection
+        if (!this.editor?.readOnly) {
+            const selection = (this.editor as CKEditorInstance)?.getSelection();
+            const element = selection?.getStartElement();
+            if (element?.getName() === MENTION_TAG_NAME) {
+                element.addClass(MENTION_CLASS_NAME);
+                selection.selectElement(element);
+                this.spanSelect = element;
+            } else {
+                if (this.spanSelect?.current) {
+                    this.spanSelect.current?.classList.remove(MENTION_CLASS_NAME);
+                    this.spanSelect = undefined;
+                }
+            }
+        }
+    };
+
+    onBlur(): void {
+        if (this.spanSelect?.current) {
+            this.spanSelect.current?.classList.remove(MENTION_CLASS_NAME);
+            this.spanSelect = undefined;
+        }
+    }
+
     applyChangesImmediately(): void {
         // put last seen content to the attribute if it exists
         if (this.lastSentValue !== undefined) {
@@ -305,6 +341,8 @@ export class Editor extends Component<EditorProps> {
             this.editor.on("key", this.onKeyPress);
             this.editor.on("paste", this.onDropOrPastedFile);
             this.editor.on("drop", this.onDropOrPastedFile);
+            this.editor.on("blur", this.onBlur);
+            this.editor.on("selectionChange", this.onSelectChange);
             if (this.widgetProps.enableUploadImages) {
                 this.editor.uploadImageEndpoint = this.widgetProps.uploadImageEndpoint;
                 this.editor.uploadImageMaxSize = this.widgetProps.uploadImageMaxSize;
@@ -317,6 +355,8 @@ export class Editor extends Component<EditorProps> {
         this.editor?.removeListener("key", this.onKeyPress);
         this.editor?.removeListener("paste", this.onDropOrPastedFile);
         this.editor?.removeListener("drop", this.onDropOrPastedFile);
+        this.editor?.removeListener("blur", this.onBlur);
+        this.editor?.removeListener("selectionChange", this.onSelectChange);
     }
 
     updateImageList(content: string | undefined): void {
@@ -335,22 +375,10 @@ export class Editor extends Component<EditorProps> {
     }
 
     updateMentionList(content: string | undefined): void {
-        if (!this.widgetProps.enableMentions || !content) {
+        if (!content) {
             return;
         }
-
-        const editorDoc = this.parser.parseFromString(content, "text/html");
-        const mentionElementsInDoc = editorDoc.querySelectorAll("a[data-type='mention']");
-        const foundUsers: string[] = [];
-
-        for (const el of Array.from(mentionElementsInDoc)) {
-            if (el.getAttribute("data-type") === "mention") {
-                const id = el.getAttribute("data-id");
-                if (id) {
-                    foundUsers.push(id);
-                }
-            }
-        }
+        const foundUsers = getMentionedList(content);
         this.widgetProps.mentionedList?.setValue(foundUsers.join(","));
     }
 

@@ -51,3 +51,11 @@
         transform: rotate(360deg);
     }
 }
+
+span[data-class="mention"] {
+    background-color: #cce;
+}
+
+span.mention {
+    background-color: #ccf;
+}
