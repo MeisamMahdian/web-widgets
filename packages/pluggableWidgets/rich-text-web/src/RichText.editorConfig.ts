@@ -68,6 +68,13 @@ export function getProperties(
             toolbarGroups.concat(["uploadImageEndpoint", "uploadedImages", "uploadImageMaxSize"])
         );
     }
+    if (!values.enableMentions) {
+        hidePropertiesIn(
+            defaultProperties,
+            values,
+            toolbarGroups.concat(["mentionDatasource", "mentionItemId", "mentionItemText", "mentionedList"])
+        );
+    }
     return defaultProperties;
 }
 
