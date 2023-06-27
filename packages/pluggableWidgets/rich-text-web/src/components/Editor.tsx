@@ -9,9 +9,9 @@ import DOMPurify from "dompurify";
 import {
     MENTION_CLASS_NAME,
     MENTION_TAG_NAME,
-    MENTION_ALLOWED_CONTENT,
     MENTION_CONFIG,
-    getMentionedList
+    getMentionedList,
+    getMentionAllowedContent
 } from "../utils/mention";
 
 const FILE_SIZE_LIMIT = 1048576; // Binary bytes for 1MB
@@ -158,8 +158,7 @@ export class Editor extends Component<EditorProps> {
 
         if (this.widgetProps.enableMentions) {
             config.mentions.push({ ...MENTION_CONFIG, feed: this.feedMention });
-            config.extraAllowedContent = [MENTION_ALLOWED_CONTENT, "img[width,height]"];
-            config.disallowedContent = "img{width,height}";
+            config.extraAllowedContent = getMentionAllowedContent(config.extraAllowedContent);
         }
 
         return {

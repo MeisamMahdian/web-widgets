@@ -125,7 +125,7 @@ export interface RichTextPreviewProps {
     uploadImageMaxSize: number | null;
     uploadedImages: string;
     enableMentions: boolean;
-    mentionDatasource: {} | { type: string } | null;
+    mentionDatasource: {} | { caption: string } | { type: string } | null;
     mentionItemId: string;
     mentionItemText: string;
     mentionedList: string;

@@ -1,6 +1,5 @@
 const MENTION_CLASS_NAME = "mention";
 const MENTION_TAG_NAME = "span";
-const MENTION_ALLOWED_CONTENT = `${MENTION_TAG_NAME}[data-id,data-type,data-class]`;
 const MENTION_CONFIG = {
     minChars: 2,
     throttle: 200,
@@ -25,5 +24,15 @@ const getMentionedList = (content: string): string[] => {
     }
     return foundUsers;
 };
+const getMentionAllowedContent = (allowedContent: any) => {
+    const extraAllowedContent = { span: { attributes: [] }, ...allowedContent };
+    extraAllowedContent.span.attributes = [
+        ...extraAllowedContent.span.attributes,
+        "data-id",
+        "data-type",
+        "data-class"
+    ];
+    return extraAllowedContent;
+};
 
-export { MENTION_CLASS_NAME, MENTION_TAG_NAME, MENTION_CONFIG, MENTION_ALLOWED_CONTENT, getMentionedList };
+export { MENTION_CLASS_NAME, MENTION_TAG_NAME, MENTION_CONFIG, getMentionAllowedContent, getMentionedList };
