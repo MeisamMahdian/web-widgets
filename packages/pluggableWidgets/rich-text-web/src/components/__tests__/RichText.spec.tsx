@@ -45,6 +45,7 @@ const defaultRichTextProps: RichTextContainerProps = {
     allowedContent: "",
     disallowedContent: "",
     enableUploadImages: false,
+    enableMentions: false,
     uploadImageEndpoint: "",
     uploadImageMaxSize: 4096,
     id: "1.Dev.Test_ListenTo.richText1_x_1"
