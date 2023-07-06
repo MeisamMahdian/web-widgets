@@ -11,7 +11,8 @@ import {
     MENTION_TAG_NAME,
     MENTION_CONFIG,
     getMentionedList,
-    getMentionAllowedContent
+    getMentionAllowedContent,
+    MENTION_TYPE_NAME
 } from "../utils/mention";
 
 const FILE_SIZE_LIMIT = 1048576; // Binary bytes for 1MB
@@ -188,7 +189,7 @@ export class Editor extends Component<EditorProps> {
         if (this.widgetProps.enableMentions) {
             editor.editable().on("click", (e: any) => {
                 // Check if click was on Tag or Mention
-                if (e.data?.getTarget()?.data("type") === "mention") {
+                if (e.data?.getTarget()?.data("type") === MENTION_TYPE_NAME) {
                     console.log(`${e.data.getTarget().data("id")} has been clicked`);
                 }
             });
