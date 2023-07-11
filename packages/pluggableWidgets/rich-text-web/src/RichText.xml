@@ -317,6 +317,10 @@
                         <attributeType name="String" />
                     </attributeTypes>
                 </property>
+            </propertyGroup>
+        </propertyGroup>
+        <propertyGroup caption="Mention">
+            <propertyGroup caption="Mention">
                 <property key="enableMentions" type="boolean" defaultValue="false">
                     <caption>Enable Mentions</caption>
                     <description />
