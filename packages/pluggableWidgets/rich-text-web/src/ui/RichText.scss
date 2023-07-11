@@ -35,6 +35,14 @@
             display: none;
         }
     }
+
+    [data-class="mention"] {
+        background-color: #cce;
+    }
+
+    .mention {
+        background-color: #ccf;
+    }
 }
 
 .widget-rich-text-loading-spinner {
@@ -50,12 +58,4 @@
     100% {
         transform: rotate(360deg);
     }
-}
-
-span[data-class="mention"] {
-    background-color: #cce;
-}
-
-span.mention {
-    background-color: #ccf;
 }

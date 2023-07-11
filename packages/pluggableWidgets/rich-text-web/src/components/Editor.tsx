@@ -132,7 +132,7 @@ export class Editor extends Component<EditorProps> {
     }
 
     feedMention = (options: MentionQuery, callbackF: TCallBackFunction): void => {
-        if (this.widgetProps && this.widgetProps.mentionItemText && this.widgetProps.mentionItemText.filterable) {
+        if (this.widgetProps?.mentionItemText?.filterable) {
             const filterCond = startsWith(attribute(this.widgetProps.mentionItemText.id), literal(options.query));
             this.widgetProps.mentionDatasource?.setFilter(filterCond);
             this.mentionCallbackFn = callbackF;
