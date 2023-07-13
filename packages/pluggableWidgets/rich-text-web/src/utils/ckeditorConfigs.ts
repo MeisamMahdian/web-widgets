@@ -31,11 +31,7 @@ const PLUGIN_CONFIGS = {
     },
     indent: null,
     indentlist: null,
-    mxupload: {
-        extraPlugins: "mxupload",
-        name: "MxUpload",
-        config: {}
-    },
+    mxupload: null,
     mentions: {
         extraPlugins: "mentions",
         name: "Mentions",
