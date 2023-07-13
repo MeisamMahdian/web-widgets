@@ -92,6 +92,7 @@ function createPreset(type: "basic" | "standard" | "full"): CKEditorConfig {
             config.toolbarGroups = [...TOOLBAR_GROUP];
             config.removeButtons =
                 "Source,Save,Templates,NewPage,ExportPdf,Preview,Print,Cut,Redo,Copy,Undo,Paste,PasteText,PasteFromWord,Find,Replace,SelectAll,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Strike,Underline,Subscript,Superscript,CopyFormatting,RemoveFormat,CreateDiv,Blockquote,JustifyLeft,BidiLtr,Image,Table,BidiRtl,JustifyCenter,JustifyRight,Language,JustifyBlock,HorizontalRule,SpecialChar,Smiley,PageBreak,Iframe,Styles,TextColor,BGColor,ShowBlocks,Maximize,Format,Font,FontSize,Anchor";
+            config.extraPlugins = "divarea"; // divarea plugins removes the iframe from cke content
             break;
         case "standard":
             toolbarGroup = [...TOOLBAR_GROUP];
@@ -99,6 +100,7 @@ function createPreset(type: "basic" | "standard" | "full"): CKEditorConfig {
             config.toolbarGroups = toolbarGroup;
             config.removeButtons =
                 "Save,Templates,NewPage,ExportPdf,Preview,Print,Find,Replace,SelectAll,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Underline,Subscript,Superscript,CopyFormatting,CreateDiv,JustifyLeft,BidiLtr,BidiRtl,JustifyCenter,JustifyRight,Language,JustifyBlock,Smiley,PageBreak,Iframe,TextColor,BGColor,Font,FontSize,ShowBlocks";
+            config.extraPlugins = "divarea"; // divarea plugins removes the iframe from cke content
             break;
         case "full":
             toolbarGroup = [...TOOLBAR_GROUP];
