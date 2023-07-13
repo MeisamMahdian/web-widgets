@@ -187,6 +187,7 @@ export class Editor extends Component<EditorProps> {
         });
         this.updateImageList(this.widgetProps.stringAttribute.value);
         if (this.widgetProps.enableMentions) {
+            this.updateMentionList(this.widgetProps.stringAttribute.value);
             editor.editable().on("click", (e: any) => {
                 // Check if click was on Tag or Mention
                 if (e.data?.getTarget()?.data("type") === MENTION_TYPE_NAME) {
