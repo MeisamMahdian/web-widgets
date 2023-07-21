@@ -3,7 +3,7 @@
  * WARNING: All changes made to this file will be overwritten
  * @author Mendix Widgets Framework Team
  */
-import { ActionValue, EditableValue, ListValue, ListAttributeValue } from "mendix";
+import { ActionValue, DynamicValue, EditableValue, ListValue, ListAttributeValue } from "mendix";
 
 export type EditorTypeEnum = "classic" | "inline";
 
@@ -74,7 +74,7 @@ export interface RichTextContainerProps {
     allowedContent: string;
     disallowedContent: string;
     enableUploadImages: boolean;
-    uploadImageEndpoint: string;
+    uploadImageEndpoint?: DynamicValue<string>;
     uploadImageMaxSize: number;
     uploadedImages?: EditableValue<string>;
     enableMentions: boolean;

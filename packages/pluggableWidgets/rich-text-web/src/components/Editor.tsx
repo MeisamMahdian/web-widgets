@@ -225,9 +225,13 @@ export class Editor extends Component<EditorProps> {
     }
 
     uploadImageToDialog(file: File): void {
+        const url = this.widgetProps.uploadImageEndpoint?.value;
+        if (!url) {
+            return;
+        }
         this.editor.openDialog("image", (dialog: any): void => {
             window
-                .fetch(this.widgetProps.uploadImageEndpoint, {
+                .fetch(url, {
                     method: "POST",
                     body: file,
                     headers: {
@@ -345,7 +349,7 @@ export class Editor extends Component<EditorProps> {
             this.editor.on("blur", this.onBlur);
             this.editor.on("selectionChange", this.onSelectChange);
             if (this.widgetProps.enableUploadImages) {
-                this.editor.uploadImageEndpoint = this.widgetProps.uploadImageEndpoint;
+                this.editor.uploadImageEndpoint = this.widgetProps.uploadImageEndpoint?.value || "";
                 this.editor.uploadImageMaxSize = this.widgetProps.uploadImageMaxSize;
             }
         }

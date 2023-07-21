@@ -302,9 +302,10 @@
                     <caption>Enable upload image</caption>
                     <description />
                 </property>
-                <property key="uploadImageEndpoint" type="string" required="false">
+                <property key="uploadImageEndpoint" type="expression" required="false">
                     <caption>Upload Image Endpoint</caption>
                     <description>Then endpoint that receives the image entity as body parameter and passes the image guid in return.</description>
+                    <returnType type="String" />
                 </property>
                 <property key="uploadImageMaxSize" type="integer" defaultValue="4096">
                     <caption>Upload Image Max Size</caption>
