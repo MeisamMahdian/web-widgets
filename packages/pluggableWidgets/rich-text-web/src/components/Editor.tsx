@@ -229,6 +229,7 @@ export class Editor extends Component<EditorProps> {
         if (!url) {
             return;
         }
+        const pid = window.mx.ui?.showProgress("Uploading in progress", true);
         this.editor.openDialog("image", (dialog: any): void => {
             window
                 .fetch(url, {
@@ -241,6 +242,7 @@ export class Editor extends Component<EditorProps> {
                     }
                 })
                 .then(response => {
+                    window.mx.ui?.hideProgress(pid);
                     if (!response.ok || response.status >= 400) {
                         throw Error(
                             JSON.stringify({

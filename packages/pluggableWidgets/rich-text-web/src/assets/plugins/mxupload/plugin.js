@@ -41,6 +41,7 @@ function attachFileBrowser(editor, dialogName, definition, elements) {
                 const dialog = evt.sender.getDialog();
                 editor._.filebrowserSe = evt.sender;
 
+                const pid = mx.ui?.showProgress("Uploading in progress", true);
                 window
                     .fetch(editor.uploadImageEndpoint, {
                         method: "POST",
@@ -52,6 +53,7 @@ function attachFileBrowser(editor, dialogName, definition, elements) {
                         }
                     })
                     .then(response => {
+                        mx.ui?.hideProgress(pid);
                         if (!response.ok || response.status >= 400) {
                             throw Error(
                                 JSON.stringify({
